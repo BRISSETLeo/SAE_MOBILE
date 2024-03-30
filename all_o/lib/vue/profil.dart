@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 class Profil extends StatefulWidget {
   const Profil({super.key});
 
+  static const title = "Profil";
+
   @override
   // ignore: library_private_types_in_public_api
   _EcranProfil createState() => _EcranProfil();
@@ -18,11 +20,8 @@ class _EcranProfil extends State<Profil> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-      ),
-      body: Padding(
+    return Center(
+      child: Padding(
         padding: const EdgeInsets.all(16.0), // Ajout de padding
         child: Center(
           child: SettingsList(
@@ -90,11 +89,12 @@ class _EcranProfil extends State<Profil> {
                                       "";
                                   context.read<SettingViewModel>().motdepasse =
                                       "";
-                                  Navigator.pushReplacement(
+                                  Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => const LoginPage(),
                                     ),
+                                    (route) => false,
                                   );
                                 },
                                 child: const Text("Se déconnecter"),

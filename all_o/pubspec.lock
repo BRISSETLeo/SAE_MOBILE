@@ -160,6 +160,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  js:
+    dependency: transitive
+    description:
+      name: js
+      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.7"
   jwt_decode:
     dependency: transitive
     description:
@@ -352,6 +360,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.27.7"
+  sembast:
+    dependency: "direct main"
+    description:
+      name: sembast
+      sha256: dbe19600cff55d43f19405be79138c3fd2c08a87b0b152b18609b9427d113a64
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.7.1"
   settings_ui:
     dependency: "direct main"
     description:
@@ -445,6 +461,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.4"
+  sqflite_common_ffi:
+    dependency: "direct main"
+    description:
+      name: sqflite_common_ffi
+      sha256: "4d6137c29e930d6e4a8ff373989dd9de7bac12e3bc87bce950f6e844e8ad3bb5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.3"
+  sqlite3:
+    dependency: transitive
+    description:
+      name: sqlite3
+      sha256: "072128763f1547e3e9b4735ce846bfd226d68019ccda54db4cd427b12dfdedc9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
   stack_trace:
     dependency: transitive
     description:

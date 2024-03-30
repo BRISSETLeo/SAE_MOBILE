@@ -29,23 +29,19 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: const Text('Identification'),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).secondaryHeaderColor,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: Center(
+              child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const SizedBox(height: 20.0),
-              const Text(
-                'Identification',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20.0),
               TextFormField(
                 controller: _usernameController,
                 validator: (value) {
@@ -128,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ],
-          ),
+          )),
         ),
       ),
     );
