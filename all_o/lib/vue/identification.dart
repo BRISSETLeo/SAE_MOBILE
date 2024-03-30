@@ -185,11 +185,12 @@ class _LoginPageState extends State<LoginPage> {
                               username;
                           context.read<SettingViewModel>().motdepasse =
                               password;
-                          Navigator.pushReplacement(
+                          Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const Accueil(),
                             ),
+                            (route) => false,
                           );
                         });
                       },

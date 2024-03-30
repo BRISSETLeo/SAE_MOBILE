@@ -1,3 +1,4 @@
+import 'package:all_o/vue/profil.dart';
 import 'package:flutter/material.dart';
 
 class Accueil extends StatefulWidget {
@@ -23,21 +24,23 @@ class _AccueilState extends State<Accueil> {
         title: const Text(
           'Accueil',
           style: TextStyle(
-            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              // Action à effectuer lors du clic sur l'icône du profil utilisateur
-            },
-            icon: const Icon(
-              Icons.person_outline,
-              color: Colors.black,
-              size: 40,
+          Tooltip(
+            message: 'Profil',
+            child: IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Profil()),
+                );
+              },
+              iconSize: 50,
             ),
-          ),
+          )
         ],
       ),
       body: _getBody(_selectedIndex),
