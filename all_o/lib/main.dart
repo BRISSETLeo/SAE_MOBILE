@@ -1,5 +1,6 @@
 import 'package:all_o/modele/supabase.dart';
 import 'package:all_o/repository/settingsmodel.dart';
+import 'package:all_o/vue/accueil.dart';
 import 'package:all_o/vue/identification.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,32 +32,8 @@ class MyApp extends StatelessWidget {
               title: "ALL'O",
               home: notifier.identifiant == "" || notifier.motdepasse == ""
                   ? const LoginPage()
-                  : const MyHomePage());
+                  : const Accueil());
         },
-      ),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Flutter Demo'),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Hello World!',
-              style: TextStyle(fontSize: 24),
-            ),
-          ],
-        ),
       ),
     );
   }

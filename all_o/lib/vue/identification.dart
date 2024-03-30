@@ -1,5 +1,5 @@
-import 'package:all_o/main.dart';
 import 'package:all_o/repository/settingsmodel.dart';
+import 'package:all_o/vue/accueil.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -160,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => const MyHomePage(),
+                builder: (context) => const Accueil(),
               ),
             );
           } else {
@@ -188,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const MyHomePage(),
+                              builder: (context) => const Accueil(),
                             ),
                           );
                         });
