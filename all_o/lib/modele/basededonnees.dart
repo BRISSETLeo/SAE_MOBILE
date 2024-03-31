@@ -18,7 +18,7 @@ class BaseDeDonnes {
   }
 
   static Future<void> initialiserBaseDeDonnees() async {
-    await deleteDatabase('all_o.db');
+    //await deleteDatabase('all_o.db');
     _initialiser = await openDatabase('all_o.db', version: 1,
         onCreate: (Database db, int version) async {
       await db.execute(
