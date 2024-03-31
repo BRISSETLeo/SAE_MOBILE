@@ -30,14 +30,34 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
   bool _isTitleEmpty = false;
 
   Future<void> _getImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  if (pickedFile != null) {
+    final File imageFile = File(pickedFile.path);
+    final int sizeInBytes = await imageFile.length();
+    final double sizeInMb = sizeInBytes / (1024 * 1024);
+    if (sizeInMb > 3) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Image trop grande"),
+          content: const Text("La taille de l'image ne peut pas dépasser 3 Mo."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    } else {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImage = imageFile;
       });
     }
   }
+}
+
+
 
   @override
   void initState() {
@@ -266,6 +286,8 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                                 _stateValue,
                                 imageBytes,
                               );
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                               Navigator.pushReplacement(
                                 // ignore: use_build_context_synchronously
                                 context,

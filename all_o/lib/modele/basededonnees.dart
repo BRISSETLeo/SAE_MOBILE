@@ -1,3 +1,4 @@
+import 'package:all_o/modele/object/bien.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -58,4 +59,10 @@ class BaseDeDonnes {
     });
     print('Materiel ajouté');
   }
+
+  static Future<List<Bien>> fetchAllMateriels() async {
+    final List<Map<String, dynamic>> materiels = await _initialiser.query('materiel');
+    return materiels.map((map) => Bien.fromMap(map)).toList();
+  }
+
 }
