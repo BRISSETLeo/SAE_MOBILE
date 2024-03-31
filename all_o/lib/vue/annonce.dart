@@ -6,9 +6,12 @@ import 'package:all_o/vue/AnnonceDetailPage.dart';
 import 'package:all_o/modele/basededonnees.dart';
 
 class Annonce extends StatefulWidget {
-  const Annonce({Key? key}) : super(key: key);
+  const Annonce({super.key});
+
+  static const title = 'Annonces';
 
   @override
+  // ignore: library_private_types_in_public_api
   _AnnonceState createState() => _AnnonceState();
 }
 
@@ -30,12 +33,8 @@ class _AnnonceState extends State<Annonce> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Annonces'),
-        backgroundColor: Theme.of(context).secondaryHeaderColor,
-      ),
-      body: FutureBuilder<List<UneAnnonce>>(
+    return Center(
+      child: FutureBuilder<List<UneAnnonce>>(
         future: Future.value(_futureAnnonces),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -55,7 +54,8 @@ class _AnnonceState extends State<Annonce> {
                   subtitle: Text(annonce.description),
                   leading: annonce.a_image
                       ? FutureBuilder<List<int>>(
-                          future: BaseDeDonnes.fetchImage(annonce.id.toString()),
+                          future:
+                              BaseDeDonnes.fetchImage(annonce.id.toString()),
                           builder: (context, imageSnapshot) {
                             if (imageSnapshot.connectionState ==
                                 ConnectionState.waiting) {

@@ -10,9 +10,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class MaterielFormPage extends StatefulWidget {
-  const MaterielFormPage({Key? key}) : super(key: key);
+  const MaterielFormPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MaterielFormPageState createState() => _MaterielFormPageState();
 }
 
