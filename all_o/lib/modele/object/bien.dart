@@ -18,7 +18,7 @@ class Bien {
       id: map['id_materiel'] ?? 0,
       titre: map['titre'],
       categorie: map['categorie'],
-      nomEtat: map['nom_etat'],
+      nomEtat: map['etat'] ?? map['nom_etat'],
       image: map['image'] != null ? List<int>.from(map['image']) : null,
     );
   }

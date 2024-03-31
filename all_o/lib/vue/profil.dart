@@ -62,6 +62,20 @@ class _EcranProfil extends State<Profil> {
                               builder: (context) => const Materiel()));
                     },
                   ),
+                  SettingsTile(
+                    title: const Text('Mes annonces'),
+                    leading: const Icon(Icons.article),
+                    onPressed: (BuildContext context) {
+                      // Ajoutez votre logique ici
+                    },
+                  ),
+                  SettingsTile(
+                    title: const Text('Mes demandes de prêts'),
+                    leading: const Icon(Icons.request_quote),
+                    onPressed: (BuildContext context) {
+                      // Ajoutez votre logique ici
+                    },
+                  ),
                   SettingsTile.switchTile(
                     initialValue: context.watch<SettingViewModel>().isDark,
                     onToggle: (bool value) {

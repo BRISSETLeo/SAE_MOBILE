@@ -225,7 +225,10 @@ class _MaterielState extends State<Materiel> {
                                     TextButton(
                                       onPressed: () async {
                                         await BaseDeDonnes.supprimerMateriel(
-                                            materielItem.id);
+                                            materielItem.id,
+                                            context
+                                                .read<SettingViewModel>()
+                                                .identifiant);
                                         setState(() {
                                           _allMateriel.removeWhere((element) =>
                                               element.id == materielItem.id);
