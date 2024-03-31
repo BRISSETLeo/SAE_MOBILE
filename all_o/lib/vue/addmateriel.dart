@@ -1,15 +1,18 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:all_o/modele/basededonnees.dart';
+import 'package:all_o/repository/settingsmodel.dart';
 import 'package:all_o/vue/monmateriel.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class MaterielFormPage extends StatefulWidget {
-  const MaterielFormPage({super.key});
+  const MaterielFormPage({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _MaterielFormPageState createState() => _MaterielFormPageState();
 }
 
@@ -28,53 +31,54 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
 
   bool _isButtonClicked = false;
   bool _isTitleEmpty = false;
+  bool _isStartDateSelected = false;
+  bool _isEndDateSelected = false;
 
   Future<void> _getImage() async {
-  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-  if (pickedFile != null) {
-    final File imageFile = File(pickedFile.path);
-    final int sizeInBytes = await imageFile.length();
-    final double sizeInMb = sizeInBytes / (1024 * 1024);
-    if (sizeInMb > 3) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Image trop grande"),
-          content: const Text("La taille de l'image ne peut pas dépasser 3 Mo."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
-    } else {
-      setState(() {
-        _selectedImage = imageFile;
-      });
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final File imageFile = File(pickedFile.path);
+      final int sizeInBytes = await imageFile.length();
+      final double sizeInMb = sizeInBytes / (1024 * 1024);
+      if (sizeInMb > 3) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Image trop grande"),
+            content:
+                const Text("La taille de l'image ne peut pas dépasser 3 Mo."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      } else {
+        setState(() {
+          _selectedImage = imageFile;
+        });
+      }
     }
   }
-}
-
-
 
   @override
   void initState() {
     super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
     final cat = BaseDeDonnes.fetchCategories();
-    cat.then((value) {
-      setState(() {
-        categories = value;
-        _categoryValue = categories[0];
-      });
-    });
     final sta = BaseDeDonnes.fetchStates();
-    sta.then((value) {
-      setState(() {
-        states = value;
-        _stateValue = states[0];
-      });
+    final List<dynamic> results = await Future.wait([cat, sta]);
+    setState(() {
+      categories = results[0];
+      states = results[1];
+      _categoryValue = categories[0];
+      _stateValue = states[0];
     });
   }
 
@@ -88,7 +92,6 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
     if (pickedDate != null) {
       if (_endDate != null && pickedDate.isAfter(_endDate!)) {
         showDialog(
-          // ignore: use_build_context_synchronously
           context: context,
           builder: (context) => AlertDialog(
             title: const Text("Erreur"),
@@ -105,6 +108,7 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
       } else {
         setState(() {
           _startDate = pickedDate;
+          _isStartDateSelected = true;
         });
       }
     }
@@ -120,6 +124,7 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
     if (pickedDate != null) {
       setState(() {
         _endDate = pickedDate;
+        _isEndDateSelected = true;
       });
     }
   }
@@ -236,8 +241,16 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                       child: Text(
                         _startDate != null
                             ? 'Date de début d\'accessibilité : ${_startDate!.day}/${_startDate!.month}/${_startDate!.year}'
-                            : 'Sélectionner une date de début d\'accessibilité',
-                        style: const TextStyle(color: Colors.blue),
+                            : _isStartDateSelected
+                                ? ''
+                                : 'Sélectionner une date de début d\'accessibilité',
+                        style: TextStyle(
+                          color: _isStartDateSelected
+                              ? Theme.of(context).primaryColor == Colors.white
+                                  ? Colors.black
+                                  : Colors.white
+                              : Colors.red,
+                        ),
                       ),
                     ),
                     TextButton(
@@ -245,8 +258,16 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                       child: Text(
                         _endDate != null
                             ? 'Date de fin d\'accessibilité : ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
-                            : 'Sélectionner une date de fin d\'accessibilité',
-                        style: const TextStyle(color: Colors.blue),
+                            : _isEndDateSelected
+                                ? ''
+                                : 'Sélectionner une date de fin d\'accessibilité',
+                        style: TextStyle(
+                          color: _isEndDateSelected
+                              ? Theme.of(context).primaryColor == Colors.white
+                                  ? Colors.black
+                                  : Colors.white
+                              : Colors.red,
+                        ),
                       ),
                     ),
                   ],
@@ -259,7 +280,9 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                     _isButtonClicked = true;
                     _isTitleEmpty = _titleController.text.isEmpty;
                   });
-                  if (_isTitleEmpty) {
+                  if (_isTitleEmpty ||
+                      (_isAnnouncement &&
+                          (!_isStartDateSelected || !_isEndDateSelected))) {
                     return;
                   } else {
                     showDialog(
@@ -285,11 +308,26 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                                 _categoryValue,
                                 _stateValue,
                                 imageBytes,
+                                _startDate,
+                                _endDate,
+                                "En cours...",
                               );
+                              if (_isAnnouncement) {
+                                await BaseDeDonnes.insererAnnonceSurSupabase(
+                                  _titleController.text,
+                                  _descriptionController.text,
+                                  _startDate!,
+                                  _endDate!,
+                                  _stateValue,
+                                  _categoryValue,
+                                  context.read<SettingViewModel>().identifiant,
+                                  imageBytes,
+                                  _selectedImage,
+                                );
+                              }
                               Navigator.of(context).pop();
                               Navigator.of(context).pop();
                               Navigator.pushReplacement(
-                                // ignore: use_build_context_synchronously
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const Materiel(),

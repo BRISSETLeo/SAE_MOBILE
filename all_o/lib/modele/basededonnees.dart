@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:all_o/modele/object/bien.dart';
 import 'package:all_o/modele/object/uneAnnonce.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,7 +22,7 @@ class BaseDeDonnes {
     _initialiser = await openDatabase('all_o.db', version: 1,
         onCreate: (Database db, int version) async {
       await db.execute(
-          'CREATE TABLE materiel (id_materiel INTEGER AUTO_INCREMENT PRIMARY KEY, titre VARCHAR, description TEXT, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
+          'CREATE TABLE materiel (id_materiel INTEGER AUTO_INCREMENT PRIMARY KEY, titre VARCHAR, description TEXT, debut_acces Timestamp DEFAULT NULL, fin_acces Timestamp DEFAULT NULL, etat VARCHAR DEFAULT NULL, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
       print('Tables créées');
     });
   }
@@ -49,11 +51,21 @@ class BaseDeDonnes {
     return states;
   }
 
-  static Future<void> insererMateriel(String nom, String description,
-      String nomCat, String nomEtat, List<int>? image) async {
+  static Future<void> insererMateriel(
+      String nom,
+      String description,
+      String nomCat,
+      String nomEtat,
+      List<int>? image,
+      DateTime? debutAcces,
+      DateTime? finAcces,
+      String? etat) async {
     await _initialiser.insert('materiel', {
       'titre': nom,
       'description': description,
+      'debut_acces': debutAcces?.toIso8601String(),
+      'fin_acces': finAcces?.toIso8601String(),
+      'etat': etat ?? Null,
       'categorie': nomCat,
       'nom_etat': nomEtat,
       'image': image,
@@ -62,11 +74,62 @@ class BaseDeDonnes {
   }
 
   static Future<List<Bien>> fetchAllMateriels() async {
-    final List<Map<String, dynamic>> materiels = await _initialiser.query('materiel');
+    final List<Map<String, dynamic>> materiels =
+        await _initialiser.query('materiel');
     return materiels.map((map) => Bien.fromMap(map)).toList();
   }
 
-  // recupere les annonces
+  static Future<void> insererAnnonceSurSupabase(
+      String titre,
+      String description,
+      DateTime debutAcces,
+      DateTime finAcces,
+      String etat,
+      String categorie,
+      String nomUtilisateur,
+      List<int>? image,
+      File? imageFile) async {
+    String debutAccesString = debutAcces.toIso8601String();
+    String finAccesString = finAcces.toIso8601String();
+
+    await Supabase.instance.client.from('annonce').insert([
+      {
+        'titre': titre,
+        'description': description,
+        'debut_acces': debutAccesString,
+        'fin_acces': finAccesString,
+        'categorie': categorie,
+        'nom_utilisateur': nomUtilisateur,
+        'est_annonce': true,
+        'etatBien': etat,
+        'a_image': image != null ? true : false
+      }
+    ]);
+    if (image != null && imageFile != null) {
+      final response = await Supabase.instance.client
+          .from('annonce')
+          .select('max(id_annonce)')
+          .eq('titre', titre)
+          .eq('description', description)
+          .eq('debut_acces', debutAccesString)
+          .eq('fin_acces', finAccesString)
+          .eq('categorie', categorie)
+          .eq('nom_utilisateur', nomUtilisateur)
+          .eq('est_annonce', true)
+          .eq('etatBien', etat)
+          .eq('a_image', true);
+      if (response.isEmpty) {
+        return;
+      }
+      final int id = response[0]['max(id_annonce)'] as int;
+      await Supabase.instance.client.storage
+          .from('annonce')
+          .upload('annonce/$id.jpg', imageFile);
+      print('Image ajoutée');
+    }
+    print('Annonce ajoutée');
+  }
+
   static Future<List<UneAnnonce>> fetchAnnonces() async {
     final response = await Supabase.instance.client.from('annonce').select();
     if (response.isEmpty) {
@@ -78,13 +141,11 @@ class BaseDeDonnes {
     return annonces;
   }
 
- static Future<List<int>> fetchImage(String nomImage) async {
+  static Future<List<int>> fetchImage(String nomImage) async {
     final response = await Supabase.instance.client.storage
         .from('annonce')
         .download('annonce/$nomImage.jpg');
     final List<int> image = response;
     return image;
-  } 
-  
-    
+  }
 }

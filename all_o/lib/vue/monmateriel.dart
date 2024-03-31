@@ -9,18 +9,19 @@ import 'package:all_o/repository/settingsmodel.dart';
 import 'package:all_o/vue/addmateriel.dart';
 
 class Materiel extends StatefulWidget {
-  const Materiel({super.key});
+  const Materiel({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _MaterielState createState() => _MaterielState();
 }
 
 class _MaterielState extends State<Materiel> {
-  List<Bien> _allMateriel = [];
-  List<Bien> _displayedMateriel = [];
+  late List<Bien> _allMateriel = [];
+  late List<Bien> _displayedMateriel = [];
   String? _selectedCategory;
+  String? _selectedState;
   int _displayedItemCount = 15;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -37,9 +38,17 @@ class _MaterielState extends State<Materiel> {
   }
 
   void _updateDisplayedMateriel() {
-    _displayedMateriel = _selectedCategory == null
-        ? _allMateriel.take(_displayedItemCount).toList()
-        : _allMateriel.where((bien) => bien.categorie == _selectedCategory).take(_displayedItemCount).toList();
+    _displayedMateriel = _allMateriel
+        .where((bien) =>
+            (bien.titre.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                bien.description
+                    .toLowerCase()
+                    .contains(_searchQuery.toLowerCase())) &&
+            (_selectedCategory == null ||
+                bien.categorie == _selectedCategory) &&
+            (_selectedState == null || bien.nomEtat == _selectedState))
+        .take(_displayedItemCount)
+        .toList();
   }
 
   @override
@@ -53,35 +62,113 @@ class _MaterielState extends State<Materiel> {
         centerTitle: true,
         backgroundColor: Theme.of(context).secondaryHeaderColor,
       ),
-      body: _allMateriel.isEmpty
-          ? const Center(child: Text("Aucun bien à afficher"))
-          : Column(
+      body: Column(
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: 'Recherche',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                  _updateDisplayedMateriel();
+                });
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
               children: [
-                DropdownButton<String>(
-                  hint: const Text('Sélectionnez une catégorie'),
-                  value: _selectedCategory,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedCategory = newValue == "Tout" ? null : newValue;
-                      _updateDisplayedMateriel();
-                    });
-                  },
-                  items: [
-                    const DropdownMenuItem<String>(
-                      value: "Tout",
-                      child: Text('Tout'),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      hint: const Text('Les catégories'),
+                      value: _selectedCategory,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedCategory =
+                              newValue == "Tout" ? null : newValue;
+                          _updateDisplayedMateriel();
+                        });
+                      },
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: "Tout",
+                          child: Text('Tout'),
+                        ),
+                        ..._allMateriel
+                            .map((bien) => bien.categorie)
+                            .toSet()
+                            .toList()
+                            .map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }),
+                      ],
                     ),
-                    ..._allMateriel.map((bien) => bien.categorie).toSet().toList().map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }),
-                  ],
+                  ),
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _displayedMateriel.length + (_allMateriel.length > _displayedItemCount ? 1 : 0),
+                Flexible(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text('Les états'),
+                    value: _selectedState,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedState = newValue == "Tout" ? null : newValue;
+                        _updateDisplayedMateriel();
+                      });
+                    },
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: "Tout",
+                        child: Text('Tout'),
+                      ),
+                      ..._allMateriel
+                          .map((bien) => bien.nomEtat)
+                          .toSet()
+                          .toList()
+                          .map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _displayedMateriel.isEmpty
+                ? Center(
+                    child: Text(
+                      _searchQuery.isEmpty
+                          ? _selectedCategory == null && _selectedState == null
+                              ? "Aucun bien à afficher"
+                              : _selectedCategory == null &&
+                                      _selectedState != null
+                                  ? "Aucun bien à afficher pour cet état"
+                                  : _selectedState == null &&
+                                          _selectedCategory != null
+                                      ? "Aucun bien à afficher pour cette catégorie"
+                                      : "Aucun bien à afficher pour cette recherche"
+                          : "Aucun bien ne correspond à votre recherche",
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _displayedMateriel.length +
+                        (_allMateriel.length > _displayedItemCount ? 1 : 0),
                     itemBuilder: (BuildContext context, int index) {
                       if (index == _displayedItemCount) {
                         return TextButton(
@@ -96,7 +183,8 @@ class _MaterielState extends State<Materiel> {
                       }
                       final materielItem = _displayedMateriel[index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         child: ListTile(
                           leading: materielItem.image != null
                               ? Image.memory(
@@ -116,20 +204,21 @@ class _MaterielState extends State<Materiel> {
                           ),
                           subtitle: Text(materielItem.description),
                           onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MaterielDetailPage(materiel: materielItem),
-                                    ),
-                                );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    MaterielDetailPage(materiel: materielItem),
+                              ),
+                            );
                           },
                         ),
                       );
                     },
                   ),
-                ),
-              ],
-            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -139,7 +228,9 @@ class _MaterielState extends State<Materiel> {
         backgroundColor: Theme.of(context).secondaryHeaderColor,
         child: Icon(
           Icons.add,
-          color: context.read<SettingViewModel>().isDark ? Colors.white : Colors.black,
+          color: context.read<SettingViewModel>().isDark
+              ? Colors.white
+              : Colors.black,
         ),
       ),
     );
