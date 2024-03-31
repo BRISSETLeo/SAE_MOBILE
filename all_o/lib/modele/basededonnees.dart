@@ -1,4 +1,5 @@
 import 'package:all_o/modele/object/bien.dart';
+import 'package:all_o/modele/object/uneAnnonce.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -65,4 +66,25 @@ class BaseDeDonnes {
     return materiels.map((map) => Bien.fromMap(map)).toList();
   }
 
+  // recupere les annonces
+  static Future<List<UneAnnonce>> fetchAnnonces() async {
+    final response = await Supabase.instance.client.from('annonce').select();
+    if (response.isEmpty) {
+      return [];
+    }
+    final List<dynamic> data = response;
+    final List<UneAnnonce> annonces =
+        data.map((e) => UneAnnonce.fromMap(e)).toList();
+    return annonces;
+  }
+
+ static Future<List<int>> fetchImage(String nomImage) async {
+    final response = await Supabase.instance.client.storage
+        .from('annonce')
+        .download('annonce/$nomImage.jpg');
+    final List<int> image = response;
+    return image;
+  } 
+  
+    
 }
