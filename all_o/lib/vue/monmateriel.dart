@@ -1,17 +1,17 @@
 import 'dart:typed_data';
-
+import 'package:flutter/material.dart';
 import 'package:all_o/modele/basededonnees.dart';
 import 'package:all_o/modele/object/bien.dart';
-import 'package:all_o/vue/materielDetailPage.dart';
-import 'package:flutter/material.dart';
+import 'package:all_o/vue/materialdetail.dart';
 import 'package:provider/provider.dart';
 import 'package:all_o/repository/settingsmodel.dart';
 import 'package:all_o/vue/addmateriel.dart';
 
 class Materiel extends StatefulWidget {
-  const Materiel({Key? key}) : super(key: key);
+  const Materiel({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MaterielState createState() => _MaterielState();
 }
 
@@ -40,10 +40,7 @@ class _MaterielState extends State<Materiel> {
   void _updateDisplayedMateriel() {
     _displayedMateriel = _allMateriel
         .where((bien) =>
-            (bien.titre.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                bien.description
-                    .toLowerCase()
-                    .contains(_searchQuery.toLowerCase())) &&
+            (bien.titre.toLowerCase().contains(_searchQuery.toLowerCase())) &&
             (_selectedCategory == null ||
                 bien.categorie == _selectedCategory) &&
             (_selectedState == null || bien.nomEtat == _selectedState))
@@ -99,7 +96,7 @@ class _MaterielState extends State<Materiel> {
                         });
                       },
                       items: [
-                        const DropdownMenuItem<String>(
+                        DropdownMenuItem<String>(
                           value: "Tout",
                           child: Text('Tout'),
                         ),
@@ -120,7 +117,7 @@ class _MaterielState extends State<Materiel> {
                 Flexible(
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    hint: const Text('Les états'),
+                    hint: Text('Les états'),
                     value: _selectedState,
                     onChanged: (String? newValue) {
                       setState(() {
@@ -129,7 +126,7 @@ class _MaterielState extends State<Materiel> {
                       });
                     },
                     items: [
-                      const DropdownMenuItem<String>(
+                      DropdownMenuItem<String>(
                         value: "Tout",
                         child: Text('Tout'),
                       ),
@@ -155,15 +152,15 @@ class _MaterielState extends State<Materiel> {
                     child: Text(
                       _searchQuery.isEmpty
                           ? _selectedCategory == null && _selectedState == null
-                              ? "Aucun bien à afficher"
+                              ? "Aucun matériel à afficher"
                               : _selectedCategory == null &&
                                       _selectedState != null
-                                  ? "Aucun bien à afficher pour cet état"
+                                  ? "Aucun matériel à afficher pour cet état"
                                   : _selectedState == null &&
                                           _selectedCategory != null
-                                      ? "Aucun bien à afficher pour cette catégorie"
-                                      : "Aucun bien à afficher pour cette recherche"
-                          : "Aucun bien ne correspond à votre recherche",
+                                      ? "Aucun matériel à afficher pour cette catégorie"
+                                      : "Aucun matériel à afficher pour cette recherche"
+                          : "Aucun matériel ne correspond à votre recherche",
                     ),
                   )
                 : ListView.builder(
@@ -178,7 +175,7 @@ class _MaterielState extends State<Materiel> {
                               _updateDisplayedMateriel();
                             });
                           },
-                          child: const Text('Voir plus'),
+                          child: Text('Voir plus'),
                         );
                       }
                       final materielItem = _displayedMateriel[index];
@@ -193,16 +190,15 @@ class _MaterielState extends State<Materiel> {
                                   height: 50,
                                   fit: BoxFit.cover,
                                 )
-                              : const SizedBox(
+                              : SizedBox(
                                   width: 50,
                                   height: 50,
                                   child: Icon(Icons.image),
                                 ),
                           title: Text(
                             materielItem.titre,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text(materielItem.description),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -212,6 +208,38 @@ class _MaterielState extends State<Materiel> {
                               ),
                             );
                           },
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Confirmation'),
+                                  content: Text(
+                                      'Êtes-vous sûr de vouloir supprimer cet objet ?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Annuler'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        await BaseDeDonnes.supprimerMateriel(
+                                            materielItem.id);
+                                        setState(() {
+                                          _allMateriel.removeWhere((element) =>
+                                              element.id == materielItem.id);
+                                          _updateDisplayedMateriel();
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('Supprimer'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       );
                     },

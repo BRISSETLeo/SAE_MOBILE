@@ -55,7 +55,8 @@ class AnnonceDetailPage extends StatelessWidget {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Erreur de chargement de l\'image'));
+                    return Center(
+                        child: Text('Erreur de chargement de l\'image'));
                   } else {
                     final imageBytes = snapshot.data!;
                     return Image.memory(

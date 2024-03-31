@@ -1,8 +1,6 @@
-// ignore_for_file: file_names
-
-import 'dart:typed_data';
-import 'package:all_o/modele/object/bien.dart';
+import 'dart:typed_data' show Uint8List;
 import 'package:flutter/material.dart';
+import 'package:all_o/modele/object/bien.dart';
 
 class MaterielDetailPage extends StatelessWidget {
   final Bien materiel;
@@ -38,13 +36,6 @@ class MaterielDetailPage extends StatelessWidget {
               style:
                   const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
             ),
-            const SizedBox(height: 8.0),
-            const Text(
-              'Description:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4.0),
-            Text(materiel.description),
             const SizedBox(height: 12.0),
             Row(
               children: [
@@ -71,48 +62,6 @@ class MaterielDetailPage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12.0),
-            if (materiel.debutAcces != null)
-              Row(
-                children: [
-                  const Text(
-                    'Date de début d\'accès: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${materiel.debutAcces!.day}/${materiel.debutAcces!.month}/${materiel.debutAcces!.year}',
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 12.0),
-            if (materiel.finAcces != null)
-              Row(
-                children: [
-                  const Text(
-                    'Date de fin d\'accès: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${materiel.finAcces!.day}/${materiel.finAcces!.month}/${materiel.finAcces!.year}',
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 12.0),
-            if (materiel.etat != null)
-              Row(
-                children: [
-                  const Text(
-                    'État: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    materiel.etat!,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                ],
-              ),
           ],
         ),
       ),

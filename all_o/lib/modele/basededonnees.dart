@@ -22,7 +22,7 @@ class BaseDeDonnes {
     _initialiser = await openDatabase('all_o.db', version: 1,
         onCreate: (Database db, int version) async {
       await db.execute(
-          'CREATE TABLE materiel (id_materiel INTEGER AUTO_INCREMENT PRIMARY KEY, titre VARCHAR, description TEXT, debut_acces Timestamp DEFAULT NULL, fin_acces Timestamp DEFAULT NULL, etat VARCHAR DEFAULT NULL, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
+          'CREATE TABLE materiel (id_materiel INTEGER AUTO_INCREMENT PRIMARY KEY, titre VARCHAR, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
       print('Tables créées');
     });
   }
@@ -52,25 +52,20 @@ class BaseDeDonnes {
   }
 
   static Future<void> insererMateriel(
-      String nom,
-      String description,
-      String nomCat,
-      String nomEtat,
-      List<int>? image,
-      DateTime? debutAcces,
-      DateTime? finAcces,
-      String? etat) async {
+      String nom, String nomCat, String nomEtat, List<int>? image) async {
     await _initialiser.insert('materiel', {
       'titre': nom,
-      'description': description,
-      'debut_acces': debutAcces?.toIso8601String(),
-      'fin_acces': finAcces?.toIso8601String(),
-      'etat': etat ?? Null,
       'categorie': nomCat,
       'nom_etat': nomEtat,
       'image': image,
     });
     print('Materiel ajouté');
+  }
+
+  static Future<void> supprimerMateriel(int id) async {
+    await _initialiser
+        .delete('materiel', where: 'id_materiel = ?', whereArgs: [id]);
+    print('Materiel supprimé');
   }
 
   static Future<List<Bien>> fetchAllMateriels() async {
