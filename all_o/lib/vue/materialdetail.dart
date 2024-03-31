@@ -15,10 +15,17 @@ class MaterielDetailPage extends StatelessWidget {
         backgroundColor: Theme.of(context).secondaryHeaderColor,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Text(
+                materiel.titre,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+              ),
+            ),
+            const SizedBox(height: 20.0), // Ajout du padding entre le titre et l'image
             if (materiel.image != null)
               Container(
                 height: 200,
@@ -30,12 +37,6 @@ class MaterielDetailPage extends StatelessWidget {
                   ),
                 ),
               ),
-            const SizedBox(height: 16.0),
-            Text(
-              'Titre: ${materiel.titre}',
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-            ),
             const SizedBox(height: 12.0),
             Row(
               children: [

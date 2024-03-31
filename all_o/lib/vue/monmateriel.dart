@@ -224,13 +224,11 @@ class _MaterielState extends State<Materiel> {
                                     ),
                                     TextButton(
                                       onPressed: () async {
-                                        await BaseDeDonnes.supprimerMateriel(
-                                            materielItem.id);
+                                        await BaseDeDonnes.supprimerMateriel(materielItem.id);
                                         setState(() {
-                                          _allMateriel.removeWhere((element) =>
-                                              element.id == materielItem.id);
-                                          _updateDisplayedMateriel();
+                                          _allMateriel.removeWhere((element) => element.id == materielItem.id);
                                         });
+                                        _updateDisplayedMateriel(); // Mettre à jour la liste affichée
                                         Navigator.pop(context);
                                       },
                                       child: Text('Supprimer'),
