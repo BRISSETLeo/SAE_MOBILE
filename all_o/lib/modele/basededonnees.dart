@@ -14,21 +14,13 @@ class BaseDeDonnes {
   }
 
   static Future<void> initialiserBaseDeDonnees() async {
+    await deleteDatabase('all_o.db');
     _initialiser = await openDatabase('all_o.db', version: 1,
         onCreate: (Database db, int version) async {
       await db.execute(
-          'CREATE TABLE categorie (id_cat INTEGER PRIMARY KEY, nom_cat TEXT)');
-      await db.execute('CREATE TABLE etat (nom_etat VARCHAR PRIMARY KEY)');
-      await db.execute(
-          'CREATE TABLE materiel (id_materiel INTEGER PRIMARY KEY, nom_materiel TEXT, description TEXT, id_cat INTEGER, nom_etat VARCHAR, FOREIGN KEY (id_cat) REFERENCES categorie(id_cat), FOREIGN KEY (nom_etat) REFERENCES etat(nom_etat))');
+          'CREATE TABLE materiel (id_materiel INTEGER AUTO_INCREMENT PRIMARY KEY, titre VARCHAR, description TEXT, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
       print('Tables créées');
     });
-  }
-
-  static Future<void> insererMateriel(
-      String nom, String description, int idCat) async {
-    await _initialiser.insert('materiel',
-        {'nom_materiel': nom, 'description': description, 'id_cat': idCat});
   }
 
   static Future<List<String>> fetchCategories() async {
@@ -41,5 +33,29 @@ class BaseDeDonnes {
     final List<String> categories =
         data.map((e) => e['nom_cat'].toString()).toList();
     return categories;
+  }
+
+  static Future<List<String>> fetchStates() async {
+    final response =
+        await Supabase.instance.client.from('etatbien').select('nom_etat_bien');
+    if (response.isEmpty) {
+      return [];
+    }
+    final List<dynamic> data = response;
+    final List<String> states =
+        data.map((e) => e['nom_etat_bien'].toString()).toList();
+    return states;
+  }
+
+  static Future<void> insererMateriel(String nom, String description,
+      String nomCat, String nomEtat, List<int>? image) async {
+    await _initialiser.insert('materiel', {
+      'titre': nom,
+      'description': description,
+      'categorie': nomCat,
+      'nom_etat': nomEtat,
+      'image': image,
+    });
+    print('Materiel ajouté');
   }
 }

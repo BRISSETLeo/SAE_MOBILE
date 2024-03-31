@@ -1,13 +1,15 @@
 import 'dart:io';
 
 import 'package:all_o/modele/basededonnees.dart';
+import 'package:all_o/vue/monmateriel.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MaterielFormPage extends StatefulWidget {
-  const MaterielFormPage({Key? key}) : super(key: key);
+  const MaterielFormPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MaterielFormPageState createState() => _MaterielFormPageState();
 }
 
@@ -16,11 +18,16 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   late String _categoryValue = '';
+  late String _stateValue = '';
   late List<String> categories = [''];
+  late List<String> states = [''];
   bool _isAnnouncement = false;
   File? _selectedImage;
   DateTime? _startDate;
   DateTime? _endDate;
+
+  bool _isButtonClicked = false;
+  bool _isTitleEmpty = false;
 
   Future<void> _getImage() async {
     final XFile? pickedFile =
@@ -42,6 +49,13 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
         _categoryValue = categories[0];
       });
     });
+    final sta = BaseDeDonnes.fetchStates();
+    sta.then((value) {
+      setState(() {
+        states = value;
+        _stateValue = states[0];
+      });
+    });
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
@@ -54,6 +68,7 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
     if (pickedDate != null) {
       if (_endDate != null && pickedDate.isAfter(_endDate!)) {
         showDialog(
+          // ignore: use_build_context_synchronously
           context: context,
           builder: (context) => AlertDialog(
             title: const Text("Erreur"),
@@ -117,10 +132,18 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Titre',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  errorText: _isButtonClicked && _isTitleEmpty
+                      ? 'Le titre est requis'
+                      : null,
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    _isTitleEmpty = value.isEmpty;
+                  });
+                },
               ),
               const SizedBox(height: 16.0),
               TextFormField(
@@ -147,6 +170,25 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                 }).toList(),
                 decoration: const InputDecoration(
                   labelText: 'Catégorie',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField<String>(
+                value: _stateValue,
+                onChanged: (value) {
+                  setState(() {
+                    _stateValue = value!;
+                  });
+                },
+                items: states.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  labelText: 'État du matériel',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -193,7 +235,51 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {
-                  // Soumission du formulaire
+                  setState(() {
+                    _isButtonClicked = true;
+                    _isTitleEmpty = _titleController.text.isEmpty;
+                  });
+                  if (_isTitleEmpty) {
+                    return;
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Confirmation'),
+                        content: const Text(
+                            'Êtes-vous sûr de vouloir ajouter ce matériel ?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Annuler'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              List<int>? imageBytes;
+                              if (_selectedImage != null) {
+                                imageBytes = _selectedImage!.readAsBytesSync();
+                              }
+                              await BaseDeDonnes.insererMateriel(
+                                _titleController.text,
+                                _descriptionController.text,
+                                _categoryValue,
+                                _stateValue,
+                                imageBytes,
+                              );
+                              Navigator.pushReplacement(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Materiel(),
+                                ),
+                              );
+                            },
+                            child: const Text('Ajouter'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 },
                 child: const Text('Ajouter'),
               ),
