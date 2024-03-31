@@ -1,6 +1,7 @@
 import 'package:all_o/mytheme.dart';
 import 'package:all_o/repository/settingsmodel.dart';
 import 'package:all_o/vue/identification.dart';
+import 'package:all_o/vue/monmateriel.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:provider/provider.dart';
@@ -54,7 +55,12 @@ class _EcranProfil extends State<Profil> {
                   SettingsTile(
                     title: const Text("Mon matériel"),
                     leading: const Icon(Icons.devices),
-                    onPressed: (BuildContext context) {},
+                    onPressed: (BuildContext context) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const Materiel()));
+                    },
                   ),
                   SettingsTile.switchTile(
                     initialValue: context.watch<SettingViewModel>().isDark,
