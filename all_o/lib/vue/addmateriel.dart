@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:all_o/modele/supabase.dart';
+import 'package:all_o/modele/basededonnees.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -15,7 +15,8 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  late String _categoryValue;
+  late String _categoryValue = '';
+  late List<String> categories = [''];
   bool _isAnnouncement = false;
   File? _selectedImage;
   DateTime? _startDate;
@@ -34,10 +35,12 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
   @override
   void initState() {
     super.initState();
-    BaseDeDonnes.fetchCategories().then((categories) {
-      if (categories.isNotEmpty) {
-        _categoryValue = categories.first;
-      }
+    final cat = BaseDeDonnes.fetchCategories();
+    cat.then((value) {
+      setState(() {
+        categories = value;
+        _categoryValue = categories[0];
+      });
     });
   }
 
@@ -129,35 +132,37 @@ class _MaterielFormPageState extends State<MaterielFormPage> {
                 ),
               ),
               const SizedBox(height: 16.0),
-              FutureBuilder<List<String>>(
-                future: BaseDeDonnes.fetchCategories(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    final categories = snapshot.data!;
-                    return DropdownButtonFormField<String>(
-                      value: _categoryValue,
-                      onChanged: (value) {
-                        setState(() {
-                          _categoryValue = value ?? '';
-                        });
-                      },
-                      items: categories.map((category) {
-                        return DropdownMenuItem<String>(
-                          value: category,
-                          child: Text(category),
-                        );
-                      }).toList(),
-                      decoration: const InputDecoration(
-                        labelText: 'Catégorie',
-                        border: OutlineInputBorder(),
-                      ),
-                    );
-                  }
+              DropdownButtonFormField<String>(
+                value: _categoryValue,
+                onChanged: (value) {
+                  setState(() {
+                    _categoryValue = value!;
+                  });
                 },
+                items: categories.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  labelText: 'Catégorie',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Column(
+                children: <Widget>[
+                  const Text('Annonce', style: TextStyle(fontSize: 16)),
+                  Switch(
+                    value: _isAnnouncement,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAnnouncement = value;
+                      });
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 16.0),
               if (_isAnnouncement) ...[

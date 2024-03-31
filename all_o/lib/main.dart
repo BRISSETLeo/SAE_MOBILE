@@ -1,4 +1,4 @@
-import 'package:all_o/modele/supabase.dart';
+import 'package:all_o/modele/basededonnees.dart';
 import 'package:all_o/repository/settingsmodel.dart';
 import 'package:all_o/vue/accueil.dart';
 import 'package:all_o/vue/identification.dart';
