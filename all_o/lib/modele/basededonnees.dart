@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:all_o/modele/object/bien.dart';
 import 'package:all_o/modele/object/uneAnnonce.dart';
@@ -18,11 +18,11 @@ class BaseDeDonnes {
   }
 
   static Future<void> initialiserBaseDeDonnees() async {
-    await deleteDatabase('all_o.db');
+    //await deleteDatabase('all_o.db');
     _initialiser = await openDatabase('all_o.db', version: 1,
         onCreate: (Database db, int version) async {
       await db.execute(
-          'CREATE TABLE materiel (id_materiel INTEGER AUTO_INCREMENT PRIMARY KEY, titre VARCHAR, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
+          'CREATE TABLE materiel (id_materiel INTEGER PRIMARY KEY AUTOINCREMENT, titre VARCHAR, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
       print('Tables créées');
     });
   }
@@ -75,54 +75,68 @@ class BaseDeDonnes {
   }
 
   static Future<void> insererAnnonceSurSupabase(
-      String titre,
+      Bien materiel,
+      String identifiant,
       String description,
       DateTime debutAcces,
       DateTime finAcces,
-      String etat,
-      String categorie,
-      String nomUtilisateur,
-      List<int>? image,
-      File? imageFile) async {
+      bool estPubliee) async {
     String debutAccesString = debutAcces.toIso8601String();
     String finAccesString = finAcces.toIso8601String();
 
-    await Supabase.instance.client.from('annonce').insert([
+    final response = await Supabase.instance.client.from("materiel").insert(
       {
-        'titre': titre,
+        'id_bien_utilisateur': materiel.id,
+        'nom_utilisateur': identifiant,
+        'titre': materiel.titre,
+        'categorie': materiel.categorie,
+        'etat': materiel.nomEtat,
+        'image': materiel.image != null ? materiel.id : null,
+      },
+    );
+
+    if (response != null && response.error != null) {
+      print('Erreur lors de l\'insertion de l\'annonce');
+      return;
+    }
+
+    final response2 = await Supabase.instance.client.from("annonce").insert(
+      {
         'description': description,
         'debut_acces': debutAccesString,
         'fin_acces': finAccesString,
-        'categorie': categorie,
-        'nom_utilisateur': nomUtilisateur,
-        'est_annonce': true,
-        'etatBien': etat,
-        'a_image': image != null ? true : false
-      }
-    ]);
-    if (image != null && imageFile != null) {
-      final response = await Supabase.instance.client
-          .from('annonce')
-          .select('max(id_annonce)')
-          .eq('titre', titre)
-          .eq('description', description)
-          .eq('debut_acces', debutAccesString)
-          .eq('fin_acces', finAccesString)
-          .eq('categorie', categorie)
-          .eq('nom_utilisateur', nomUtilisateur)
-          .eq('est_annonce', true)
-          .eq('etatBien', etat)
-          .eq('a_image', true);
-      if (response.isEmpty) {
-        return;
-      }
-      final int id = response[0]['max(id_annonce)'] as int;
-      await Supabase.instance.client.storage
-          .from('annonce')
-          .upload('annonce/$id.jpg', imageFile);
-      print('Image ajoutée');
+        'id_materiel': await recupererIdMaterielAPArtirDunTitre(materiel.titre),
+        'etat': estPubliee ? 'Ouvert' : 'Fermé',
+      },
+    );
+
+    if (response2 != null && response2.error != null) {
+      print('Erreur lors de l\'insertion de l\'annonce');
+      return;
     }
+
+    // MEttre l'image dans le bucket avec l'id du materiel material.id
+    if (materiel.image != null) {
+      await Supabase.instance.client.storage.from('annonce').uploadBinary(
+          'annonce/${materiel.id}.jpg', Uint8List.fromList(materiel.image!));
+    }
+
     print('Annonce ajoutée');
+  }
+
+  static Future<int> recupererIdMaterielAPArtirDunTitre(String titre) async {
+    final response = await Supabase.instance.client
+        .from('materiel')
+        .select('id_materiel')
+        .eq('titre', titre)
+        .order('id_materiel', ascending: false)
+        .limit(1);
+    if (response.isEmpty) {
+      return -1;
+    }
+    final List<dynamic> data = response;
+    final int idMateriel = data[0]['id_materiel'];
+    return idMateriel;
   }
 
   static Future<List<UneAnnonce>> fetchAnnonces() async {
