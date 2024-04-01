@@ -23,6 +23,8 @@ class BaseDeDonnes {
         onCreate: (Database db, int version) async {
       await db.execute(
           'CREATE TABLE materiel (id_materiel INTEGER PRIMARY KEY AUTOINCREMENT, titre VARCHAR, categorie VARCHAR, nom_etat VARCHAR, image LONGBLOB)');
+      await db.execute(
+          'CREATE TABLE annonce (id_annonce INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, debut_acces Timestamp, fin_acces Timestamp, id_materiel INTEGER, etat VARCHAR, est_annonce BOOLEAN, categorie VARCHAR)');
       print('Tables créées');
     });
   }
@@ -62,9 +64,33 @@ class BaseDeDonnes {
     print('Materiel ajouté');
   }
 
-  static Future<void> supprimerMateriel(int id) async {
+  static Future<void> supprimerMateriel(int id, String identifiant) async {
     await _initialiser
         .delete('materiel', where: 'id_materiel = ?', whereArgs: [id]);
+    await _initialiser
+        .delete('annonce', where: 'id_materiel = ?', whereArgs: [id]);
+
+    await Supabase.instance.client
+        .from('materiel')
+        .select('id_materiel')
+        .eq('id_bien_utilisateur', id)
+        .eq('nom_utilisateur', identifiant)
+        .then((value) async => {
+              for (int i = 0; i < value.length; i++)
+                {
+                  await Supabase.instance.client
+                      .from('annonce')
+                      .delete()
+                      .eq('id_materiel', value[i]['id_materiel'])
+                }
+            });
+
+    await Supabase.instance.client
+        .from('materiel')
+        .delete()
+        .eq('id_bien_utilisateur', id)
+        .eq('nom_utilisateur', identifiant);
+
     print('Materiel supprimé');
   }
 
@@ -100,12 +126,15 @@ class BaseDeDonnes {
       return;
     }
 
+    final int idMateriel =
+        await recupererIdMaterielAPArtirDunTitre(materiel.titre);
+
     final response2 = await Supabase.instance.client.from("annonce").insert(
       {
         'description': description,
         'debut_acces': debutAccesString,
         'fin_acces': finAccesString,
-        'id_materiel': await recupererIdMaterielAPArtirDunTitre(materiel.titre),
+        'id_materiel': idMateriel,
         'etat': estPubliee ? 'Ouvert' : 'Fermé',
       },
     );
@@ -120,6 +149,15 @@ class BaseDeDonnes {
       await Supabase.instance.client.storage.from('annonce').uploadBinary(
           'annonce/${materiel.id}.jpg', Uint8List.fromList(materiel.image!));
     }
+
+    await _initialiser.insert('annonce', {
+      'description': description,
+      'debut_acces': debutAccesString,
+      'fin_acces': finAccesString,
+      'id_materiel': idMateriel,
+      'etat': estPubliee ? 'Ouvert' : 'Fermé',
+      'est_annonce': true,
+    });
 
     print('Annonce ajoutée');
   }
@@ -140,13 +178,28 @@ class BaseDeDonnes {
   }
 
   static Future<List<UneAnnonce>> fetchAnnonces() async {
-    final response = await Supabase.instance.client.from('annonce').select();
+    final response = await Supabase.instance.client.from('annonce').select().eq('est_annonce', true);
     if (response.isEmpty) {
       return [];
     }
     final List<dynamic> data = response;
     final List<UneAnnonce> annonces =
         data.map((e) => UneAnnonce.fromMap(e)).toList();
+    
+    // recupere les materiels des annonces
+    for (int i = 0; i < annonces.length; i++) {
+      final response2 = await Supabase.instance.client
+          .from('materiel')
+          .select()
+          .eq('id_materiel', annonces[i].materiel.id);
+      if (response2.isNotEmpty) {
+        final List<dynamic> data2 = response2;
+        final Bien materiel = Bien.fromMap(data2[0]);
+        annonces[i].materiel = materiel;
+      }
+    }
+
+
     return annonces;
   }
 
@@ -156,5 +209,37 @@ class BaseDeDonnes {
         .download('annonce/$nomImage.jpg');
     final List<int> image = response;
     return image;
+  }
+
+  static Future<void> ajouterUneDemandes(String categorie, String description,
+      DateTime debutAcces, DateTime finAcces) async {
+    String debutAccesString = debutAcces.toIso8601String();
+    String finAccesString = finAcces.toIso8601String();
+    final response2 = await Supabase.instance.client.from("annonce").insert(
+      {
+        'description': description,
+        'categorie': categorie,
+        'etat': 'Ouvert',
+        'debut_acces': debutAccesString,
+        'fin_acces': finAccesString,
+        'est_annonce': false,
+      },
+    );
+
+    if (response2 != null && response2.error != null) {
+      print('Erreur lors de l\'insertion de la demande');
+      return;
+    }
+
+    await _initialiser.insert('annonce', {
+      'description': description,
+      'categorie': categorie,
+      'etat': 'Ouvert',
+      'debut_acces': debutAccesString,
+      'fin_acces': finAccesString,
+      'est_annonce': false,
+    });
+
+    print('Demandes ajoutée');
   }
 }

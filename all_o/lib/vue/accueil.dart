@@ -26,8 +26,8 @@ class _AccueilState extends State<Accueil> {
     String titre = "Accueil";
     if (_widgetOptions[_selectedIndex] is Profil) {
       titre = Profil.title;
-    } else if (_widgetOptions[_selectedIndex] is Annonce) {
-      titre = Annonce.title;
+    // } else if (_widgetOptions[_selectedIndex] is Annonce) {
+    //   titre = Annonce.title;
     } else if (_widgetOptions[_selectedIndex] is Demande) {
       titre = Demande.title;
     }

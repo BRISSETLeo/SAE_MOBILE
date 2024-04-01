@@ -400,6 +400,7 @@ class _AjouterAnnonceState extends State<AjouterAnnonce> {
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
+                          Navigator.pop(context);
                           BaseDeDonnes.insererAnnonceSurSupabase(
                             _materiel,
                             context.read<SettingViewModel>().identifiant,
