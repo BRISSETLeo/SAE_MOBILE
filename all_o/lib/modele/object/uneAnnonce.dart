@@ -23,11 +23,10 @@ class UneAnnonce {
     required this.a_image,
   });
 
-
   factory UneAnnonce.fromMap(Map<String, dynamic> map) {
     return UneAnnonce(
       id: map['id_annonce'] ?? 0,
-      titre: map['titre'],
+      titre: map['titre'] ?? '',
       description: map['description'],
       debut_acces: map['debut_acces'],
       fin_acces: map['fin_acces'],
@@ -35,8 +34,7 @@ class UneAnnonce {
       categorie: map['categorie'],
       nom_utilisateur: map['nom_utilisateur'],
       est_annonce: map['est_annonce'],
-      a_image: map['a_image'],
-  );
+      a_image: map['a_image'] ?? false,
+    );
+  }
 }
-}
-

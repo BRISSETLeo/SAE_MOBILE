@@ -1,7 +1,9 @@
 // ignore_for_file: file_names
 
+import 'package:all_o/repository/settingsmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:all_o/modele/basededonnees.dart';
+import 'package:provider/provider.dart';
 
 class DemandePret extends StatefulWidget {
   const DemandePret({super.key});
@@ -148,6 +150,7 @@ class _DemandePretState extends State<DemandePret> {
                                 _descriptionController.text,
                                 _startDate,
                                 _endDate,
+                                context.read<SettingViewModel>().identifiant,
                               );
                               Navigator.of(context).pop();
                               Navigator.of(context).pop();

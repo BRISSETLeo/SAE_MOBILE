@@ -1,6 +1,7 @@
 import 'package:all_o/mytheme.dart';
 import 'package:all_o/repository/settingsmodel.dart';
 import 'package:all_o/vue/identification.dart';
+import 'package:all_o/vue/mesdemandes.dart';
 import 'package:all_o/vue/monmateriel.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -73,7 +74,10 @@ class _EcranProfil extends State<Profil> {
                     title: const Text('Mes demandes de prêts'),
                     leading: const Icon(Icons.request_quote),
                     onPressed: (BuildContext context) {
-                      // Ajoutez votre logique ici
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const MesDemandes()));
                     },
                   ),
                   SettingsTile.switchTile(

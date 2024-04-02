@@ -136,6 +136,7 @@ class BaseDeDonnes {
         'fin_acces': finAccesString,
         'id_materiel': idMateriel,
         'etat': estPubliee ? 'Ouvert' : 'Fermé',
+        'nom_utilisateur': identifiant,
       },
     );
 
@@ -197,7 +198,7 @@ class BaseDeDonnes {
   }
 
   static Future<void> ajouterUneDemandes(String categorie, String description,
-      DateTime debutAcces, DateTime finAcces) async {
+      DateTime debutAcces, DateTime finAcces, String nomUtilisateur) async {
     String debutAccesString = debutAcces.toIso8601String();
     String finAccesString = finAcces.toIso8601String();
     final response2 = await Supabase.instance.client.from("annonce").insert(
@@ -208,6 +209,7 @@ class BaseDeDonnes {
         'debut_acces': debutAccesString,
         'fin_acces': finAccesString,
         'est_annonce': false,
+        'nom_utilisateur': nomUtilisateur,
       },
     );
 
@@ -226,5 +228,40 @@ class BaseDeDonnes {
     });
 
     print('Demandes ajoutée');
+  }
+
+  static Future<List<UneAnnonce>> fetchMesDemandes(String identifiant) async {
+    final response = await Supabase.instance.client
+        .from('annonce')
+        .select()
+        .eq('nom_utilisateur', identifiant)
+        .eq('est_annonce', false);
+    if (response.isEmpty) {
+      final List<Map<String, dynamic>> annonces =
+          await _initialiser.query('annonce');
+      return annonces.map((map) => UneAnnonce.fromMap(map)).toList();
+    }
+    final List<dynamic> data = response;
+    final List<UneAnnonce> annonces =
+        data.map((e) => UneAnnonce.fromMap(e)).toList();
+    final List<Map<String, dynamic>> annoncesLocales =
+        await _initialiser.query('annonce');
+    for (int i = 0; i < annonces.length; i++) {
+      if (annonces[i].etat != annoncesLocales[i]['etat']) {
+        await _initialiser.update('annonce', {'etat': annonces[i].etat},
+            where: 'id_annonce = ?', whereArgs: [annonces[i].id]);
+      }
+    }
+    return annonces;
+  }
+
+  static Future<void> supprimerDemande(int id) async {
+    await _initialiser
+        .delete('annonce', where: 'id_annonce = ?', whereArgs: [id]);
+    await Supabase.instance.client
+        .from('annonce')
+        .delete()
+        .eq('id_annonce', id);
+    print('Demande supprimée');
   }
 }
