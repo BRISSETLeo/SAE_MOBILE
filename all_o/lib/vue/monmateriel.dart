@@ -96,7 +96,7 @@ class _MaterielState extends State<Materiel> {
                         });
                       },
                       items: [
-                        DropdownMenuItem<String>(
+                        const DropdownMenuItem<String>(
                           value: "Tout",
                           child: Text('Tout'),
                         ),
@@ -195,9 +195,19 @@ class _MaterielState extends State<Materiel> {
                                   height: 50,
                                   child: Icon(Icons.image),
                                 ),
-                          title: Text(
-                            materielItem.titre,
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                materielItem.titre,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'État: ${materielItem.nomEtat}',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
                           ),
                           onTap: () {
                             Navigator.push(
