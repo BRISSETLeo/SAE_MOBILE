@@ -4,7 +4,7 @@ class UneAnnonce {
   final String description;
   final String debut_acces;
   final String fin_acces;
-  final String etat;
+  String etat;
   final String categorie;
   final String nom_utilisateur;
   final bool est_annonce;
@@ -31,7 +31,7 @@ class UneAnnonce {
       debut_acces: map['debut_acces'],
       fin_acces: map['fin_acces'],
       etat: map['etat'],
-      categorie: map['categorie'],
+      categorie: map['categorie'] ?? '',
       nom_utilisateur: map['nom_utilisateur'],
       est_annonce: map['est_annonce'],
       a_image: map['a_image'] ?? false,

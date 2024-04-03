@@ -255,6 +255,40 @@ class BaseDeDonnes {
     return annonces;
   }
 
+  static Future<List<UneAnnonce>> fetchMesAnnonces(String identifiant) async {
+    final response = await Supabase.instance.client
+        .from('annonce')
+        .select()
+        .eq('nom_utilisateur', identifiant)
+        .eq('est_annonce', true);
+    if (response.isEmpty) {
+      final List<Map<String, dynamic>> annonces =
+          await _initialiser.query('annonce');
+      return annonces.map((map) => UneAnnonce.fromMap(map)).toList();
+    }
+    final List<dynamic> data = response;
+    final List<UneAnnonce> annonces =
+        data.map((e) => UneAnnonce.fromMap(e)).toList();
+    final List<Map<String, dynamic>> annoncesLocales =
+        await _initialiser.query('annonce');
+    for (int i = 0; i < annonces.length; i++) {
+      if (annonces[i].etat != annoncesLocales[i]['etat']) {
+        await _initialiser.update('annonce', {'etat': annonces[i].etat},
+            where: 'id_annonce = ?', whereArgs: [annonces[i].id]);
+      }
+    }
+    return annonces;
+  }
+
+  static Future<void> publierAnnonce(int id, String etat) async {
+    await _initialiser.update('annonce', {'etat': etat},
+        where: 'id_annonce = ?', whereArgs: [id]);
+    await Supabase.instance.client
+        .from('annonce')
+        .update({'etat': etat}).eq('id_annonce', id);
+    print('Annonce publiée $etat');
+  }
+
   static Future<void> supprimerDemande(int id) async {
     await _initialiser
         .delete('annonce', where: 'id_annonce = ?', whereArgs: [id]);

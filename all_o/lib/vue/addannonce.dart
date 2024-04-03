@@ -9,6 +9,7 @@ class AjouterMateriel extends StatefulWidget {
   const AjouterMateriel({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AjouterMaterielState createState() => _AjouterMaterielState();
 }
 
