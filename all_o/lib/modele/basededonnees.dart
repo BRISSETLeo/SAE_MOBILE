@@ -145,10 +145,20 @@ class BaseDeDonnes {
       return;
     }
 
-    // MEttre l'image dans le bucket avec l'id du materiel material.id
     if (materiel.image != null) {
-      await Supabase.instance.client.storage.from('annonce').uploadBinary(
-          'annonce/${materiel.id}.jpg', Uint8List.fromList(materiel.image!));
+      // check que l'image existe pas déjà sur supabase
+      await Supabase.instance.client.storage
+          .from('annonce')
+          .download('annonce/${materiel.id}.jpg')
+          .then((value) => {
+                if (value.isEmpty)
+                  {
+                    Supabase.instance.client.storage
+                        .from('annonce')
+                        .uploadBinary('annonce/${materiel.id}.jpg',
+                            Uint8List.fromList(materiel.image!))
+                  }
+              });
     }
 
     await _initialiser.insert('annonce', {
@@ -269,6 +279,9 @@ class BaseDeDonnes {
     final List<Map<String, dynamic>> annoncesLocales =
         await _initialiser.query('annonce');
     for (int i = 0; i < annonces.length; i++) {
+      if (annoncesLocales.length <= i) {
+        continue;
+      }
       if (annonces[i].etat != annoncesLocales[i]['etat']) {
         await _initialiser.update('annonce', {'etat': annonces[i].etat},
             where: 'id_annonce = ?', whereArgs: [annonces[i].id]);
@@ -320,6 +333,10 @@ class BaseDeDonnes {
           : UneAnnonce.fromMap(annonceEntry, null);
 
       annonces.add(annonce);
+
+      if (annoncesLocales.length <= i) {
+        continue;
+      }
 
       if (annonce.etat != annoncesLocales[i]['etat']) {
         await _initialiser.update('annonce', {'etat': annonce.etat},
