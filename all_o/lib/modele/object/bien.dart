@@ -13,13 +13,13 @@ class Bien {
     this.image,
   });
 
-  factory Bien.fromMap(Map<String, dynamic> map) {
+  factory Bien.fromMap(Map<String, dynamic> map, List<int>? list) {
     return Bien(
       id: map['id_materiel'] ?? 0,
       titre: map['titre'],
       categorie: map['categorie'],
-      nomEtat: map['nom_etat'],
-      image: map['image'] != null ? List<int>.from(map['image']) : null,
+      nomEtat: map['etat'] ?? map['nom_etat'],
+      image: list ?? map['image'],
     );
   }
 }

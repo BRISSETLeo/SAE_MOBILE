@@ -1,23 +1,21 @@
-import 'dart:typed_data';
+import 'package:all_o/modele/object/uneAnnonce.dart';
+import 'package:all_o/vue/addDemande.dart';
 import 'package:flutter/material.dart';
 import 'package:all_o/modele/basededonnees.dart';
-import 'package:all_o/modele/object/bien.dart';
-import 'package:all_o/vue/materialdetail.dart';
 import 'package:provider/provider.dart';
 import 'package:all_o/repository/settingsmodel.dart';
-import 'package:all_o/vue/addmateriel.dart';
 
-class Materiel extends StatefulWidget {
-  const Materiel({super.key});
+class MesDemandes extends StatefulWidget {
+  const MesDemandes({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _MaterielState createState() => _MaterielState();
+  _MesDemandesPretsState createState() => _MesDemandesPretsState();
 }
 
-class _MaterielState extends State<Materiel> {
-  late List<Bien> _allMateriel = [];
-  late List<Bien> _displayedMateriel = [];
+class _MesDemandesPretsState extends State<MesDemandes> {
+  late List<UneAnnonce> _allDemandesPrets = [];
+  late List<UneAnnonce> _displayedDemandesPrets = [];
   String? _selectedCategory;
   String? _selectedState;
   int _displayedItemCount = 15;
@@ -26,24 +24,27 @@ class _MaterielState extends State<Materiel> {
   @override
   void initState() {
     super.initState();
-    _loadAllMateriel();
+    _loadAllDemandesPrets();
   }
 
-  Future<void> _loadAllMateriel() async {
-    final allMateriel = await BaseDeDonnes.fetchAllMateriels();
+  Future<void> _loadAllDemandesPrets() async {
+    final allDemandesPrets = await BaseDeDonnes.fetchMesDemandes(
+        context.read<SettingViewModel>().identifiant);
     setState(() {
-      _allMateriel = allMateriel;
-      _updateDisplayedMateriel();
+      _allDemandesPrets = allDemandesPrets;
+      _updateDisplayedDemandesPrets();
     });
   }
 
-  void _updateDisplayedMateriel() {
-    _displayedMateriel = _allMateriel
-        .where((bien) =>
-            (bien.titre.toLowerCase().contains(_searchQuery.toLowerCase())) &&
+  void _updateDisplayedDemandesPrets() {
+    _displayedDemandesPrets = _allDemandesPrets
+        .where((demande) =>
+            (demande.description
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase())) &&
             (_selectedCategory == null ||
-                bien.categorie == _selectedCategory) &&
-            (_selectedState == null || bien.nomEtat == _selectedState))
+                demande.categorie == _selectedCategory) &&
+            (_selectedState == null || demande.etat == _selectedState))
         .take(_displayedItemCount)
         .toList();
   }
@@ -53,7 +54,7 @@ class _MaterielState extends State<Materiel> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Mon matériel",
+          "Mes demandes de prêts",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -72,7 +73,7 @@ class _MaterielState extends State<Materiel> {
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value;
-                  _updateDisplayedMateriel();
+                  _updateDisplayedDemandesPrets();
                 });
               },
             ),
@@ -92,7 +93,7 @@ class _MaterielState extends State<Materiel> {
                         setState(() {
                           _selectedCategory =
                               newValue == "Tout" ? null : newValue;
-                          _updateDisplayedMateriel();
+                          _updateDisplayedDemandesPrets();
                         });
                       },
                       items: [
@@ -100,8 +101,8 @@ class _MaterielState extends State<Materiel> {
                           value: "Tout",
                           child: Text('Tout'),
                         ),
-                        ..._allMateriel
-                            .map((bien) => bien.categorie)
+                        ..._allDemandesPrets
+                            .map((demande) => demande.categorie)
                             .toSet()
                             .toList()
                             .map((String value) {
@@ -122,7 +123,7 @@ class _MaterielState extends State<Materiel> {
                     onChanged: (String? newValue) {
                       setState(() {
                         _selectedState = newValue == "Tout" ? null : newValue;
-                        _updateDisplayedMateriel();
+                        _updateDisplayedDemandesPrets();
                       });
                     },
                     items: [
@@ -130,8 +131,8 @@ class _MaterielState extends State<Materiel> {
                         value: "Tout",
                         child: Text('Tout'),
                       ),
-                      ..._allMateriel
-                          .map((bien) => bien.nomEtat)
+                      ..._allDemandesPrets
+                          .map((demande) => demande.etat)
                           .toSet()
                           .toList()
                           .map((String value) {
@@ -147,105 +148,90 @@ class _MaterielState extends State<Materiel> {
             ),
           ),
           Expanded(
-            child: _displayedMateriel.isEmpty
+            child: _displayedDemandesPrets.isEmpty
                 ? Center(
                     child: Text(
                       _searchQuery.isEmpty
                           ? _selectedCategory == null && _selectedState == null
-                              ? "Aucun matériel à afficher"
+                              ? "Aucune demande de prêt à afficher"
                               : _selectedCategory == null &&
                                       _selectedState != null
-                                  ? "Aucun matériel à afficher pour cet état"
+                                  ? "Aucune demande de prêt à afficher pour cet état"
                                   : _selectedState == null &&
                                           _selectedCategory != null
-                                      ? "Aucun matériel à afficher pour cette catégorie"
-                                      : "Aucun matériel à afficher pour cette recherche"
-                          : "Aucun matériel ne correspond à votre recherche",
+                                      ? "Aucune demande de prêt à afficher pour cette catégorie"
+                                      : "Aucune demande de prêt à afficher pour cette recherche"
+                          : "Aucune demande de prêt ne correspond à votre recherche",
                     ),
                   )
                 : ListView.builder(
-                    itemCount: _displayedMateriel.length +
-                        (_allMateriel.length > _displayedItemCount ? 1 : 0),
+                    itemCount: _displayedDemandesPrets.length +
+                        (_allDemandesPrets.length > _displayedItemCount
+                            ? 1
+                            : 0),
                     itemBuilder: (BuildContext context, int index) {
                       if (index == _displayedItemCount) {
                         return TextButton(
                           onPressed: () {
                             setState(() {
                               _displayedItemCount += 15;
-                              _updateDisplayedMateriel();
+                              _updateDisplayedDemandesPrets();
                             });
                           },
                           child: Text('Voir plus'),
                         );
                       }
-                      final materielItem = _displayedMateriel[index];
+                      final demandePret = _displayedDemandesPrets[index];
                       return Card(
                         margin: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         child: ListTile(
-                          leading: materielItem.image != null
-                              ? Image.memory(
-                                  Uint8List.fromList(materielItem.image!),
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                )
-                              : SizedBox(
-                                  width: 50,
-                                  height: 50,
-                                  child: Icon(Icons.image),
-                                ),
                           title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                materielItem.titre,
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                demandePret.description,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
+                              SizedBox(
+                                  height:
+                                      4), // Ajoute un espace entre la description et l'état
                               Text(
-                                'État: ${materielItem.nomEtat}',
+                                'État: ${demandePret.etat}',
                                 style:
                                     TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                             ],
                           ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    MaterielDetailPage(materiel: materielItem),
-                              ),
-                            );
-                          },
                           trailing: IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: Text('Confirmation'),
-                                  content: Text(
-                                      'Êtes-vous sûr de vouloir supprimer cet objet ?'),
+                                  title: const Text('Confirmation'),
+                                  content: const Text(
+                                      'Êtes-vous sûr de vouloir supprimer cette demande de prêt ?'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
-                                      child: Text('Annuler'),
+                                      child: const Text('Annuler'),
                                     ),
                                     TextButton(
                                       onPressed: () async {
-                                        await BaseDeDonnes.supprimerMateriel(
-                                            materielItem.id,
-                                            context
-                                                .read<SettingViewModel>()
-                                                .identifiant);
+                                        await BaseDeDonnes.supprimerDemande(
+                                            demandePret.id);
                                         setState(() {
-                                          _allMateriel.removeWhere((element) => element.id == materielItem.id);
+                                          _allDemandesPrets.removeWhere(
+                                              (element) =>
+                                                  element.id == demandePret.id);
+                                          _updateDisplayedDemandesPrets();
                                         });
-                                        _updateDisplayedMateriel(); // Mettre à jour la liste affichée
+                                        // ignore: use_build_context_synchronously
                                         Navigator.pop(context);
                                       },
-                                      child: Text('Supprimer'),
+                                      child: const Text('Supprimer'),
                                     ),
                                   ],
                                 ),
@@ -262,7 +248,7 @@ class _MaterielState extends State<Materiel> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return MaterielFormPage(key: UniqueKey());
+            return const DemandePret();
           }));
         },
         backgroundColor: Theme.of(context).secondaryHeaderColor,
