@@ -240,9 +240,10 @@ class _MaterielState extends State<Materiel> {
                                                 .read<SettingViewModel>()
                                                 .identifiant);
                                         setState(() {
-                                          _allMateriel.removeWhere((element) => element.id == materielItem.id);
+                                          _allMateriel.removeWhere((element) =>
+                                              element.id == materielItem.id);
+                                          _updateDisplayedMateriel();
                                         });
-                                        _updateDisplayedMateriel(); // Mettre à jour la liste affichée
                                         Navigator.pop(context);
                                       },
                                       child: Text('Supprimer'),

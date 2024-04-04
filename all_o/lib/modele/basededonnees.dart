@@ -146,7 +146,6 @@ class BaseDeDonnes {
     }
 
     if (materiel.image != null) {
-      // check que l'image existe pas déjà sur supabase
       await Supabase.instance.client.storage
           .from('annonce')
           .download('annonce/${materiel.id}.jpg')
