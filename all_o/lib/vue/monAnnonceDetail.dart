@@ -13,10 +13,10 @@ class MonAnnonceDetailPage extends StatefulWidget {
   final OnStateChanged onStateChanged;
 
   const MonAnnonceDetailPage(
-      {Key? key, required this.annonce, required this.onStateChanged})
-      : super(key: key);
+      {super.key, required this.annonce, required this.onStateChanged});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MonAnnonceDetailPageState createState() => _MonAnnonceDetailPageState();
 }
 
@@ -27,14 +27,13 @@ class _MonAnnonceDetailPageState extends State<MonAnnonceDetailPage> {
   @override
   void initState() {
     super.initState();
-    // Initialise l'état modifié à l'état de l'annonce actuelle
     isSwitched = widget.annonce.etat == 'Ouvert';
-    // Initialise isModified à false car il n'y a pas encore de modification
     isModified = false;
   }
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -43,34 +42,43 @@ class _MonAnnonceDetailPageState extends State<MonAnnonceDetailPage> {
           backgroundColor: Theme.of(context).secondaryHeaderColor,
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.annonce.materiel != null)
+                if (widget.annonce.materiel != null)
+                  Image.memory(
+                    Uint8List.fromList(widget.annonce.materiel?.image ?? []),
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
               Text(
                 'Titre: ${widget.annonce.titre}',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 18.0),
               ),
-              SizedBox(height: 8.0),
-              Text(
+              const SizedBox(height: 8.0),
+              const Text(
                 'Description:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 4.0),
+              const SizedBox(height: 4.0),
               Text(widget.annonce.description),
-              SizedBox(height: 12.0),
+              const SizedBox(height: 12.0),
               Text(
                 'Début d\'accès: ${widget.annonce.debut_acces}',
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Text(
                 'Fin d\'accès: ${widget.annonce.fin_acces}',
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Row(
                 children: [
-                  Text('État:'),
-                  SizedBox(width: 8.0),
+                  const Text('État:'),
+                  const SizedBox(width: 8.0),
                   Switch(
                     value: isSwitched,
                     onChanged: (value) {
@@ -84,7 +92,7 @@ class _MonAnnonceDetailPageState extends State<MonAnnonceDetailPage> {
                     activeColor: Theme.of(context).primaryColor,
                     activeTrackColor: Colors.lightGreenAccent,
                   ),
-                  SizedBox(width: 8.0),
+                  const SizedBox(width: 8.0),
                   Text(
                     isSwitched ? 'Ouvert' : 'Fermé',
                     style: TextStyle(
@@ -96,23 +104,23 @@ class _MonAnnonceDetailPageState extends State<MonAnnonceDetailPage> {
                   ),
                 ],
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Text('Catégorie: ${widget.annonce.categorie}'),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Text('Nom de l\'utilisateur: ${widget.annonce.nom_utilisateur}'),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Text(
                 'Est une annonce: ${widget.annonce.est_annonce ? 'Oui' : 'Non'}',
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               if (widget.annonce.a_image)
                 FutureBuilder<List<int>>(
                   future: BaseDeDonnes.fetchImage(widget.annonce.id.toString()),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
-                      return Center(
+                      return const Center(
                         child: Text('Erreur de chargement de l\'image'),
                       );
                     } else {
@@ -132,16 +140,15 @@ class _MonAnnonceDetailPageState extends State<MonAnnonceDetailPage> {
         floatingActionButton: isModified
             ? FloatingActionButton(
                 onPressed: () {
-                  BaseDeDonnes.publierAnnonce(widget.annonce.id,
-                      widget.annonce.etat == 'Ouvert' ? 'Fermé' : 'Ouvert');
+                  BaseDeDonnes.publierAnnonce(
+                      widget.annonce.id, isSwitched ? 'Ouvert' : 'Fermé');
                   setState(() {
                     isModified = false;
-                    widget.annonce.etat =
-                        widget.annonce.etat == 'Ouvert' ? 'Fermé' : 'Ouvert';
+                    widget.annonce.etat = isSwitched ? 'Ouvert' : 'Fermé';
                   });
                 },
                 backgroundColor: Theme.of(context).secondaryHeaderColor,
-                child: Icon(Icons.save),
+                child: const Icon(Icons.save),
               )
             : FloatingActionButton(
                 onPressed: () {},
@@ -158,23 +165,23 @@ class _MonAnnonceDetailPageState extends State<MonAnnonceDetailPage> {
       bool confirm = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Attention'),
-          content:
-              Text('Voulez-vous quitter sans sauvegarder les modifications ?'),
+          title: const Text('Attention'),
+          content: const Text(
+              'Voulez-vous quitter sans sauvegarder les modifications ?'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Non'),
+              child: const Text('Non'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Oui'),
+              child: const Text('Oui'),
             ),
           ],
         ),
       );
 
-      return confirm ?? false;
+      return confirm;
     }
 
     return true;

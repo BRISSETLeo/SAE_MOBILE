@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:all_o/modele/object/uneAnnonce.dart';
 import 'package:all_o/vue/addannonce.dart';
 import 'package:all_o/vue/monAnnonceDetail.dart';
@@ -119,7 +121,7 @@ class _MesDemandesPretsState extends State<MesAnnonces> {
                 Flexible(
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    hint: Text('Les états'),
+                    hint: const Text('Les états'),
                     value: _selectedState,
                     onChanged: (String? newValue) {
                       setState(() {
@@ -128,7 +130,7 @@ class _MesDemandesPretsState extends State<MesAnnonces> {
                       });
                     },
                     items: [
-                      DropdownMenuItem<String>(
+                      const DropdownMenuItem<String>(
                         value: "Tout",
                         child: Text('Tout'),
                       ),
@@ -179,7 +181,7 @@ class _MesDemandesPretsState extends State<MesAnnonces> {
                               _updateDisplayedDemandesPrets();
                             });
                           },
-                          child: Text('Voir plus'),
+                          child: const Text('Voir plus'),
                         );
                       }
                       final demandePret = _displayedDemandesPrets[index];
@@ -201,33 +203,49 @@ class _MesDemandesPretsState extends State<MesAnnonces> {
                               );
                             }));
                           },
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          title: Row(
                             children: [
-                              Text(
-                                demandePret.description,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(
-                                  height:
-                                      4), // Ajoute un espace entre la description et l'état
-                              Text(
-                                'État: ${demandePret.etat}',
-                                style:
-                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              if (demandePret.materiel != null)
+                                Image.memory(
+                                  Uint8List.fromList(
+                                      demandePret.materiel?.image ?? []),
+                                  width: 30,
+                                  height: 30,
+                                  fit: BoxFit.cover,
+                                ),
+                              const SizedBox(
+                                  width:
+                                      10), // Ajoute un espace entre l'image et le texte
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment
+                                    .start, // Alignement à gauche
+                                children: [
+                                  Text(
+                                    demandePret.description,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'État: ${demandePret.etat}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.delete),
+                            icon: const Icon(Icons.delete),
                             onPressed: () {
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Confirmation'),
                                   content: const Text(
-                                      'Êtes-vous sûr de vouloir supprimer cette demande de prêt ?'),
+                                      'Êtes-vous sûr de vouloir supprimer cette annonce ?'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
@@ -235,7 +253,7 @@ class _MesDemandesPretsState extends State<MesAnnonces> {
                                     ),
                                     TextButton(
                                       onPressed: () async {
-                                        await BaseDeDonnes.supprimerDemande(
+                                        await BaseDeDonnes.supprimerAnnonce(
                                             demandePret.id);
                                         setState(() {
                                           _allDemandesPrets.removeWhere(

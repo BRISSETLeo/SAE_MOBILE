@@ -97,7 +97,7 @@ class BaseDeDonnes {
   static Future<List<Bien>> fetchAllMateriels() async {
     final List<Map<String, dynamic>> materiels =
         await _initialiser.query('materiel');
-    return materiels.map((map) => Bien.fromMap(map)).toList();
+    return materiels.map((map) => Bien.fromMap(map, null)).toList();
   }
 
   static Future<void> insererAnnonceSurSupabase(
@@ -180,12 +180,34 @@ class BaseDeDonnes {
 
   static Future<List<UneAnnonce>> fetchAnnonces() async {
     final response = await Supabase.instance.client.from('annonce').select();
+    final materielResponse =
+        await Supabase.instance.client.from('materiel').select();
+
     if (response.isEmpty) {
       return [];
     }
-    final List<dynamic> data = response;
-    final List<UneAnnonce> annonces =
-        data.map((e) => UneAnnonce.fromMap(e)).toList();
+
+    final List<dynamic> annonceData = response;
+    final List<dynamic> materielData = materielResponse;
+
+    final Map<int, dynamic> materielMap = {};
+
+    for (var materielEntry in materielData) {
+      materielMap[materielEntry['id']] = materielEntry;
+    }
+
+    final List<UneAnnonce> annonces = [];
+
+    for (var annonceEntry in annonceData) {
+      final materielId = annonceEntry['id_materiel'];
+      final materielInfo = materielMap[materielId];
+      if (materielInfo != null) {
+        annonces.add(UneAnnonce.fromMap(annonceEntry, materielInfo));
+      } else {
+        annonces.add(UneAnnonce.fromMap(annonceEntry, null));
+      }
+    }
+
     return annonces;
   }
 
@@ -239,11 +261,11 @@ class BaseDeDonnes {
     if (response.isEmpty) {
       final List<Map<String, dynamic>> annonces =
           await _initialiser.query('annonce');
-      return annonces.map((map) => UneAnnonce.fromMap(map)).toList();
+      return annonces.map((map) => UneAnnonce.fromMap(map, null)).toList();
     }
     final List<dynamic> data = response;
     final List<UneAnnonce> annonces =
-        data.map((e) => UneAnnonce.fromMap(e)).toList();
+        data.map((e) => UneAnnonce.fromMap(e, null)).toList();
     final List<Map<String, dynamic>> annoncesLocales =
         await _initialiser.query('annonce');
     for (int i = 0; i < annonces.length; i++) {
@@ -261,22 +283,50 @@ class BaseDeDonnes {
         .select()
         .eq('nom_utilisateur', identifiant)
         .eq('est_annonce', true);
+
     if (response.isEmpty) {
-      final List<Map<String, dynamic>> annonces =
+      final List<Map<String, dynamic>> annoncesData =
           await _initialiser.query('annonce');
-      return annonces.map((map) => UneAnnonce.fromMap(map)).toList();
+      return annoncesData.map((map) => UneAnnonce.fromMap(map, null)).toList();
     }
-    final List<dynamic> data = response;
-    final List<UneAnnonce> annonces =
-        data.map((e) => UneAnnonce.fromMap(e)).toList();
+
+    final List<dynamic> annonceData = response;
     final List<Map<String, dynamic>> annoncesLocales =
         await _initialiser.query('annonce');
-    for (int i = 0; i < annonces.length; i++) {
-      if (annonces[i].etat != annoncesLocales[i]['etat']) {
-        await _initialiser.update('annonce', {'etat': annonces[i].etat},
-            where: 'id_annonce = ?', whereArgs: [annonces[i].id]);
+
+    final List<UneAnnonce> annonces = [];
+
+    final materielResponse =
+        await Supabase.instance.client.from('materiel').select();
+    final List<dynamic> materielData = materielResponse;
+    final Map<int, dynamic> materielMap = {};
+    for (var materielEntry in materielData) {
+      materielMap[materielEntry['id_materiel']] = materielEntry;
+    }
+
+    for (int i = 0; i < annonceData.length; i++) {
+      final annonceEntry = annonceData[i];
+      final materielId = annonceEntry['id_materiel'];
+      final materielInfo = materielMap[materielId];
+
+      final annonce = materielInfo != null
+          ? UneAnnonce.fromMap(
+              annonceEntry,
+              Bien.fromMap(
+                  materielInfo,
+                  materielInfo['image'] != null
+                      ? await fetchImage(materielInfo['image'].toString())
+                      : null))
+          : UneAnnonce.fromMap(annonceEntry, null);
+
+      annonces.add(annonce);
+
+      if (annonce.etat != annoncesLocales[i]['etat']) {
+        await _initialiser.update('annonce', {'etat': annonce.etat},
+            where: 'id_annonce = ?', whereArgs: [annonce.id]);
       }
     }
+
     return annonces;
   }
 
@@ -287,6 +337,16 @@ class BaseDeDonnes {
         .from('annonce')
         .update({'etat': etat}).eq('id_annonce', id);
     print('Annonce publiée $etat');
+  }
+
+  static Future<void> supprimerAnnonce(int id) async {
+    await _initialiser
+        .delete('annonce', where: 'id_annonce = ?', whereArgs: [id]);
+    await Supabase.instance.client
+        .from('annonce')
+        .delete()
+        .eq('id_annonce', id);
+    print('Annonce supprimée');
   }
 
   static Future<void> supprimerDemande(int id) async {
