@@ -5,6 +5,9 @@ import 'package:all_o/vue/addDemande.dart';
 import 'package:flutter/material.dart';
 import 'package:all_o/modele/object/uneAnnonce.dart';
 import 'package:all_o/modele/basededonnees.dart';
+import 'package:all_o/repository/settingsmodel.dart';
+import 'package:provider/provider.dart';
+
 
 class Demande extends StatefulWidget {
   const Demande({super.key});
@@ -25,9 +28,15 @@ class _AnnonceState extends State<Demande> {
   }
 
   Future<List<UneAnnonce>> _loadAnnonces() async {
-    final annonces = await BaseDeDonnes.fetchAnnonces();
+    final annonces = await BaseDeDonnes.fetchAnnonces(
+        context.read<SettingViewModel>().identifiant);
+      setState(() {
+        _futureAnnonces = annonces as Future<List<UneAnnonce>>;
+      });
     return annonces;
   }
+
+  
 
   @override
   Widget build(BuildContext context) {

@@ -187,38 +187,62 @@ class BaseDeDonnes {
     return idMateriel;
   }
 
-  static Future<List<UneAnnonce>> fetchAnnonces() async {
-    final response = await Supabase.instance.client.from('annonce').select();
-    final materielResponse =
-        await Supabase.instance.client.from('materiel').select();
+  static Future<List<UneAnnonce>> fetchAnnonces(identifiant) async {
+    final response = await Supabase.instance.client
+        .from('annonce')
+        .select()
+        .eq('est_annonce', true);
 
     if (response.isEmpty) {
-      return [];
+      final List<Map<String, dynamic>> annoncesData =
+          await _initialiser.query('annonce');
+      return annoncesData.map((map) => UneAnnonce.fromMap(map, null)).toList();
     }
 
     final List<dynamic> annonceData = response;
-    final List<dynamic> materielData = materielResponse;
-
-    final Map<int, dynamic> materielMap = {};
-
-    for (var materielEntry in materielData) {
-      materielMap[materielEntry['id']] = materielEntry;
-    }
+    final List<Map<String, dynamic>> annoncesLocales =
+        await _initialiser.query('annonce');
 
     final List<UneAnnonce> annonces = [];
 
-    for (var annonceEntry in annonceData) {
+    final materielResponse =
+        await Supabase.instance.client.from('materiel').select();
+    final List<dynamic> materielData = materielResponse;
+    final Map<int, dynamic> materielMap = {};
+    for (var materielEntry in materielData) {
+      materielMap[materielEntry['id_materiel']] = materielEntry;
+    }
+
+    for (int i = 0; i < annonceData.length; i++) {
+      final annonceEntry = annonceData[i];
       final materielId = annonceEntry['id_materiel'];
       final materielInfo = materielMap[materielId];
-      if (materielInfo != null) {
-        annonces.add(UneAnnonce.fromMap(annonceEntry, materielInfo));
-      } else {
-        annonces.add(UneAnnonce.fromMap(annonceEntry, null));
+
+      final annonce = materielInfo != null
+          ? UneAnnonce.fromMap(
+              annonceEntry,
+              Bien.fromMap(
+                  materielInfo,
+                  materielInfo['image'] != null
+                      ? await fetchImage(materielInfo['image'].toString())
+                      : null))
+          : UneAnnonce.fromMap(annonceEntry, null);
+
+      annonces.add(annonce);
+
+      if (annoncesLocales.length <= i) {
+        continue;
+      }
+
+      if (annonce.etat != annoncesLocales[i]['etat']) {
+        await _initialiser.update('annonce', {'etat': annonce.etat},
+            where: 'id_annonce = ?', whereArgs: [annonce.id]);
       }
     }
 
     return annonces;
   }
+
 
   static Future<List<int>> fetchImage(String nomImage) async {
     final response = await Supabase.instance.client.storage
